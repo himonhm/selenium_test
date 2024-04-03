@@ -78,9 +78,7 @@ def test_scenario_2(driver):
     assert "Контакты" in sbis_page.get_title()
 
     # проверяем, что определился регион и есть список партнеров
-    block_current_region = sbis_page.find_current_region_element(
-        is_recently_changed=False
-    )
+    block_current_region = sbis_page.find_current_region_element()
     partners_list = sbis_page.find_elements(
         locator=(
             By.XPATH,
@@ -96,10 +94,10 @@ def test_scenario_2(driver):
 
     new_region_name = "Камчатский край"
     sbis_page.find_element(
-        (By.XPATH, f"//span[@title='{new_region_name}']/span")
+        (By.XPATH, f"//span[@title='{new_region_name}']/span"), start_delay=2
     ).click()
 
-    new_block_current_region = sbis_page.find_current_region_element()
+    new_block_current_region = sbis_page.find_current_region_element(start_delay=3)
 
     # проверяем что подставился выбранный регион
     assert new_region_name in new_block_current_region.text

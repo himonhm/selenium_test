@@ -22,8 +22,12 @@ class BasePage:
         return self.driver.current_url
 
     def find_element(
-        self, locator: tuple[str, str], driver_or_element: WebElement = None
+        self,
+        locator: tuple[str, str],
+        driver_or_element: WebElement = None,
+        start_delay: int = 0,
     ) -> WebElement:
+        time.sleep(start_delay)
         driver_or_element = (
             self.driver if driver_or_element is None else driver_or_element
         )
