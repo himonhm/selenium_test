@@ -9,50 +9,37 @@ from .conftest import DOWNLOAD_FOLDER, NEW_REGION_NAME, NEW_REGION_PARTIAL_URL
 
 
 def test_scenario_1(driver):
-    # переходим на https://sbis.ru/ в раздел "Контакты"
     sbis_page = pages.SbisPage(driver=driver, timeout=10)
     sbis_page.open()
-    assert "СБИС" in sbis_page.get_title()
+    sbis_page.should_be_in_title("СБИС")
 
-    link_contacts = sbis_page.find_element(locator=SbisPageLocators.LINK_CONTACTS)
-    link_contacts.click()
-    assert "Контакты" in sbis_page.get_title()
+    sbis_page.find_contacts_link().click()
 
-    # Находим банер Тензор, кликнуть по нему
-    tensor_banner = sbis_page.find_element(locator=SbisPageLocators.TENSOR_BANNER)
-    tensor_banner.click()
-    sbis_page.switch_to_new_tab()
+    sbis_contact_page = pages.SbisContactsPage(driver=driver, timeout=10)
+    sbis_contact_page.should_be_in_title("Контакты")
 
-    # Проверяем, что открылась страница https://tensor.ru/
+    sbis_contact_page.find_tensor_banner().click()
+
     tensor_page = pages.TensorPage(driver=driver, timeout=10)
-    assert "https://tensor.ru/" == tensor_page.get_url()
-
-    # Проверяем, что есть блок "Сила в людях"
-    block_power_of_people = tensor_page.find_element(
-        locator=TensorPageLocators.POWER_OF_PEOPLE
-    )
-    assert block_power_of_people.is_displayed()
-
-    # переходим в подробнее, убеждаемся, что открывается https://tensor.ru/about
-    link_details = tensor_page.find_element(
-        locator=TensorPageLocators.DETAILS_BLOCK_ABOUT_LINK
-    )
-    tensor_page.scroll_to_element(element=link_details)
-    link_details.click()
     tensor_page.switch_to_new_tab()
-    assert "https://tensor.ru/about" == tensor_page.get_url()
+    tensor_page.should_be_in_url("https://tensor.ru/")
 
-    # Находим раздел "Работаем" и проверяем, что у всех фотографий хронологии
-    # одинаковые высота (height) и ширина (width)
-    block_working = tensor_page.find_element(locator=TensorPageLocators.BLOCK_WORKING)
-    photos = tensor_page.find_elements(locator=TensorPageLocators.BLOCK_PHOTOS)
+    power_of_people_block = tensor_page.find_power_of_people()
+    tensor_page.should_be_displayed(power_of_people_block)
 
-    widths = [int(photo.get_attribute("width")) for photo in photos]
-    heights = [int(photo.get_attribute("height")) for photo in photos]
+    details_link = tensor_page.find_details_link()
+    tensor_page.scroll_to_element(details_link).click()
 
-    assert sum(widths) == widths[0] * len(photos) and sum(heights) == heights[0] * len(
-        photos
-    )
+    tensor_about_page = pages.TensorAboutPage(driver=driver, timeout=10)
+    tensor_about_page.switch_to_new_tab()
+    tensor_about_page.should_be_in_url("https://tensor.ru/about")
+
+    working_block = tensor_about_page.find_working_block()
+    tensor_about_page.should_be_displayed(working_block)
+    tensor_about_page.scroll_to_element(working_block)
+
+    photos_block = tensor_about_page.find_photos_blocks()
+    tensor_about_page.should_be_same_width_and_height(photos_block)
 
 
 def test_scenario_2(driver):
