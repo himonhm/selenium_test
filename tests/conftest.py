@@ -13,12 +13,7 @@ NEW_REGION_PARTIAL_URL = "41-kamchatskij-kraj"
 def driver():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument(
-        "--allow-running-insecure-content"
-    )  # Allow insecure content
-    chrome_options.add_argument(
-        "--unsafely-treat-insecure-origin-as-secure=http://example.com"
-    )  # Replace example.com with your site's domain
+    chrome_options.add_argument("--allow-running-insecure-content")
     chrome_options.add_experimental_option(
         "prefs",
         {
