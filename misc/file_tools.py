@@ -1,8 +1,12 @@
 import os
 import time
 
+from tests.conftest import DOWNLOAD_FOLDER
 
-def get_latest_file_path(folder_path: str, retries: int = 60) -> str:
+
+def get_latest_file_path(
+    folder_path: str = DOWNLOAD_FOLDER, retries: int = 60
+) -> str | None:
     for _ in range(retries):
         time.sleep(1)
         files = [
@@ -15,6 +19,7 @@ def get_latest_file_path(folder_path: str, retries: int = 60) -> str:
         file_name = max(files, key=os.path.getmtime)
         if not file_name.endswith(".crdownload"):
             return file_name
+    return None
 
 
 def get_file_size(file_path) -> int:
