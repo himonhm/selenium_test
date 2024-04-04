@@ -6,17 +6,17 @@ from pages.locators import SbisPageLocators, TensorPageLocators
 class SbisPage(BasePage):
     page_url = "https://sbis.ru/"
 
-    def find_current_region_element(self, start_delay: int = 0):
-        time.sleep(start_delay)
-
-        return self.find_element(locator=SbisPageLocators.CURRENT_REGION_ELEMENT)
-
     def find_contacts_link(self):
         return self.find_element(locator=SbisPageLocators.LINK_CONTACTS)
 
 
 class SbisContactsPage(BasePage):
     page_url = "https://sbis.ru/contacts/"
+
+    def find_current_region_block(self, start_delay: int = 0):
+        time.sleep(start_delay)
+
+        return self.find_element(locator=SbisPageLocators.CURRENT_REGION_ELEMENT)
 
     def find_tensor_banner(self):
         return self.find_element(locator=SbisPageLocators.TENSOR_BANNER)
