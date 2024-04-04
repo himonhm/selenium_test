@@ -5,6 +5,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 DOWNLOAD_FOLDER = "C:\\test_downloads"
+NEW_REGION_NAME = "Камчатский край"
+NEW_REGION_PARTIAL_URL = "41-kamchatskij-kraj"
 
 
 @pytest.fixture(scope="function")

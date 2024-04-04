@@ -2,9 +2,10 @@ import re
 import time
 from selenium.webdriver.common.by import By
 
-from page_objects import pages
+from pages import pages
+from pages.locators import SbisPageLocators, TensorPageLocators
 from misc import file_tools
-from .conftest import DOWNLOAD_FOLDER
+from .conftest import DOWNLOAD_FOLDER, NEW_REGION_NAME, NEW_REGION_PARTIAL_URL
 
 
 def test_scenario_1(driver):
@@ -13,14 +14,12 @@ def test_scenario_1(driver):
     sbis_page.open()
     assert "СБИС" in sbis_page.get_title()
 
-    link_contacts = sbis_page.find_element(locator=(By.LINK_TEXT, "Контакты"))
+    link_contacts = sbis_page.find_element(locator=SbisPageLocators.LINK_CONTACTS)
     link_contacts.click()
     assert "Контакты" in sbis_page.get_title()
 
     # Находим банер Тензор, кликнуть по нему
-    tensor_banner = sbis_page.find_element(
-        locator=(By.XPATH, "//a[@href='https://tensor.ru/' and @title='tensor.ru']/img")
-    )
+    tensor_banner = sbis_page.find_element(locator=SbisPageLocators.TENSOR_BANNER)
     tensor_banner.click()
     sbis_page.switch_to_new_tab()
 
@@ -30,13 +29,13 @@ def test_scenario_1(driver):
 
     # Проверяем, что есть блок "Сила в людях"
     block_power_of_people = tensor_page.find_element(
-        locator=(By.XPATH, "//p[text()='Сила в людях']")
+        locator=TensorPageLocators.POWER_OF_PEOPLE
     )
     assert block_power_of_people.is_displayed()
 
     # переходим в подробнее, убеждаемся, что открывается https://tensor.ru/about
-    link_details = block_power_of_people.find_element(
-        By.XPATH, "./following::a[@href='/about' and text()='Подробнее']"
+    link_details = tensor_page.find_element(
+        locator=TensorPageLocators.DETAILS_BLOCK_ABOUT_LINK
     )
     tensor_page.scroll_to_element(element=link_details)
     link_details.click()
@@ -45,19 +44,8 @@ def test_scenario_1(driver):
 
     # Находим раздел "Работаем" и проверяем, что у всех фотографий хронологии
     # одинаковые высота (height) и ширина (width)
-    block_working = tensor_page.find_element(
-        locator=(
-            By.XPATH,
-            "//h2[text()='Работаем']",
-        )
-    )
-    photos = tensor_page.find_elements(
-        locator=(
-            By.XPATH,
-            "./parent::*/following-sibling::*//img",
-        ),
-        driver_or_element=block_working,
-    )
+    block_working = tensor_page.find_element(locator=TensorPageLocators.BLOCK_WORKING)
+    photos = tensor_page.find_elements(locator=TensorPageLocators.BLOCK_PHOTOS)
 
     widths = [int(photo.get_attribute("width")) for photo in photos]
     heights = [int(photo.get_attribute("height")) for photo in photos]
@@ -73,47 +61,31 @@ def test_scenario_2(driver):
     sbis_page.open()
     assert "СБИС" in sbis_page.get_title()
 
-    link_contacts = sbis_page.find_element(locator=(By.LINK_TEXT, "Контакты"))
+    link_contacts = sbis_page.find_element(locator=SbisPageLocators.LINK_CONTACTS)
     link_contacts.click()
     assert "Контакты" in sbis_page.get_title()
 
     # проверяем, что определился регион и есть список партнеров
     block_current_region = sbis_page.find_current_region_element()
-    partners_list = sbis_page.find_elements(
-        locator=(
-            By.XPATH,
-            "//div[contains(@class, 'sbisru-Contacts-List__item')]",
-        )
-    )
+    partners_list = sbis_page.find_elements(locator=SbisPageLocators.PARTNERS_LIST)
 
     assert block_current_region.is_displayed()
     assert len(partners_list) > 0
 
-    # Изменяем регион на Камчатский край
+    # Изменяем регион на Камчатский край и проверяем что подставился выбранный регион
     block_current_region.click()
-
-    new_region_name = "Камчатский край"
-    sbis_page.find_element(
-        (By.XPATH, f"//span[@title='{new_region_name}']/span"), start_delay=2
-    ).click()
-
+    sbis_page.find_element(SbisPageLocators.NEW_REGION_LINK, start_delay=2).click()
     new_block_current_region = sbis_page.find_current_region_element(start_delay=3)
 
-    # проверяем что подставился выбранный регион
-    assert new_region_name in new_block_current_region.text
+    assert NEW_REGION_NAME in new_block_current_region.text
 
     # проверяем что список партнеров изменился
-    new_partner_list = sbis_page.find_elements(
-        locator=(
-            By.XPATH,
-            "//div[contains(@class, 'sbisru-Contacts-List__item')]",
-        )
-    )
+    new_partner_list = sbis_page.find_elements(locator=SbisPageLocators.PARTNERS_LIST)
     assert partners_list != new_partner_list
 
     # проверяем url и title
-    assert "41-kamchatskij-kraj" in sbis_page.get_url()
-    assert new_region_name in sbis_page.get_title()
+    assert NEW_REGION_PARTIAL_URL in sbis_page.get_url()
+    assert NEW_REGION_NAME in sbis_page.get_title()
 
 
 def test_scenario_3(driver):
@@ -127,10 +99,10 @@ def test_scenario_3(driver):
         (By.XPATH, "//div[@class='sbisru-Footer__container']")
     )
     sbis_page.scroll_to_element(footer)
-    footer.find_element(By.PARTIAL_LINK_TEXT, "Скачать локальные версии").click()
+    footer.find_element(*SbisPageLocators.BLOCK_FOOTER_DOWNLOAD_LINK).click()
 
     download_sbis_plugin_link = sbis_page.find_element(
-        (By.XPATH, "//div[text()='СБИС Плагин']/../../..")
+        SbisPageLocators.DOWNLOAD_SBIS_PLUGIN_LINK
     )
 
     # для того, чтобы клик прошел через робота, нажимаем два раза
@@ -139,7 +111,7 @@ def test_scenario_3(driver):
     download_sbis_plugin_link.click()
     time.sleep(1)  # подождать загрузки js
 
-    download_file_link = sbis_page.find_element((By.PARTIAL_LINK_TEXT, "Скачать (Exe"))
+    download_file_link = sbis_page.find_element(SbisPageLocators.DOWNLOAD_FILE_LINK)
     download_file_link.click()
 
     file_size_from_page = float(re.findall(r"\d*\.\d+|\d+", download_file_link.text)[0])
