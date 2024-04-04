@@ -1,6 +1,8 @@
+import re
 import time
 from selenium.webdriver.remote.webelement import WebElement
 
+from misc import file_tools
 from pages.base_page import BasePage
 from pages.locators import SbisPageLocators, TensorPageLocators
 from tests.conftest import NEW_REGION_NAME
@@ -11,6 +13,52 @@ class SbisPage(BasePage):
 
     def find_contacts_link(self) -> WebElement:
         return self.find_element(locator=SbisPageLocators.LINK_CONTACTS)
+
+    def find_footer_block(self) -> WebElement:
+        return self.find_element(locator=SbisPageLocators.BLOCK_FOOTER)
+
+    def find_download_local_versions_link(self) -> WebElement:
+        self.scroll_to_element(self.find_footer_block())
+        return self.find_element(locator=SbisPageLocators.BLOCK_FOOTER_DOWNLOAD_LINK)
+
+
+class SbisDownloadPage(BasePage):
+    page_url = "https://sbis.ru/download/"
+
+    def find_download_sbis_plugin_link(self) -> WebElement:
+        return self.find_element(locator=SbisPageLocators.DOWNLOAD_SBIS_PLUGIN_LINK)
+
+    def find_download_file_link(self) -> WebElement:
+        return self.find_element(locator=SbisPageLocators.DOWNLOAD_FILE_LINK)
+
+    def should_download_sbis_plugin(self) -> str:
+        """Проверяет есть ли возможность скачать файл, и возвращает путь к нему
+        Returns:
+            str: "путь к файлу"
+        """
+
+        download_sbis_plugin_link = self.find_download_sbis_plugin_link()
+
+        # для того, чтобы клик прошел через робота, нажимаем два раза
+        download_sbis_plugin_link.click()
+        time.sleep(2)
+        download_sbis_plugin_link.click()
+        time.sleep(1)  # подождать загрузки js
+
+        self.find_download_file_link().click()
+        latest_file_path = file_tools.get_latest_file_path()
+        assert latest_file_path is not None
+        return latest_file_path
+
+    def get_file_size_from_page(self) -> float:
+        download_file_link = self.find_element(SbisPageLocators.DOWNLOAD_FILE_LINK)
+        return float(re.findall(r"\d*\.\d+|\d+", download_file_link.text)[0])
+
+    def should_same_file_size(self, downloaded_file_path: str):
+        file_size_from_page = self.get_file_size_from_page()
+        assert file_size_from_page == round(
+            file_tools.get_file_size(downloaded_file_path), 1
+        )
 
 
 class SbisContactsPage(BasePage):
