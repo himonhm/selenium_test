@@ -75,3 +75,6 @@ class BasePage:
         assert sum(widths) == widths[0] * len(elements) and sum(heights) == heights[
             0
         ] * len(elements)
+
+    def should_be_not_empty(self, elements: list[WebElement]):
+        assert len(elements) > 0
