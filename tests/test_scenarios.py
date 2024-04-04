@@ -43,36 +43,24 @@ def test_scenario_1(driver):
 
 
 def test_scenario_2(driver):
-    # переходим на https://sbis.ru/ в раздел "Контакты"
     sbis_page = pages.SbisPage(driver=driver, timeout=10)
     sbis_page.open()
-    assert "СБИС" in sbis_page.get_title()
+    sbis_page.should_be_in_title("СБИС")
 
-    link_contacts = sbis_page.find_element(locator=SbisPageLocators.LINK_CONTACTS)
-    link_contacts.click()
-    assert "Контакты" in sbis_page.get_title()
+    sbis_page.find_contacts_link().click()
 
-    # проверяем, что определился регион и есть список партнеров
-    block_current_region = sbis_page.find_current_region_element()
-    partners_list = sbis_page.find_elements(locator=SbisPageLocators.PARTNERS_LIST)
+    sbis_contact_page = pages.SbisContactsPage(driver=driver, timeout=10)
+    sbis_contact_page.should_be_in_title("Контакты")
 
-    assert block_current_region.is_displayed()
-    assert len(partners_list) > 0
+    current_region_block = sbis_contact_page.find_current_region_block()
+    sbis_contact_page.should_be_displayed(current_region_block)
 
-    # Изменяем регион на Камчатский край и проверяем что подставился выбранный регион
-    block_current_region.click()
-    sbis_page.find_element(SbisPageLocators.NEW_REGION_LINK, start_delay=2).click()
-    new_block_current_region = sbis_page.find_current_region_element(start_delay=3)
-
-    assert NEW_REGION_NAME in new_block_current_region.text
-
-    # проверяем что список партнеров изменился
-    new_partner_list = sbis_page.find_elements(locator=SbisPageLocators.PARTNERS_LIST)
-    assert partners_list != new_partner_list
-
-    # проверяем url и title
-    assert NEW_REGION_PARTIAL_URL in sbis_page.get_url()
-    assert NEW_REGION_NAME in sbis_page.get_title()
+    partners_list = sbis_contact_page.find_partners_list_blocks()
+    sbis_contact_page.should_be_not_empty(partners_list)
+    sbis_contact_page.should_able_to_change_current_region()
+    sbis_contact_page.should_changed_partner_list(partners_list)
+    sbis_contact_page.should_be_in_url(NEW_REGION_PARTIAL_URL)
+    sbis_contact_page.should_be_in_title(NEW_REGION_NAME)
 
 
 def test_scenario_3(driver):
