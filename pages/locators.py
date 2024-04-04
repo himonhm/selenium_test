@@ -28,4 +28,7 @@ class TensorPageLocators:
         f"{POWER_OF_PEOPLE[1]}/following::a[@href='/about' and text()='Подробнее']",
     )
     BLOCK_WORKING = (By.XPATH, "//h2[text()='Работаем']")
-    BLOCK_PHOTOS = (By.XPATH, f"{BLOCK_WORKING[1]}/parent::*/following-sibling::*//img")
+    BLOCK_WORKING_PHOTOS = (
+        By.XPATH,
+        f"{BLOCK_WORKING[1]}/parent::*/following-sibling::*//img",
+    )
