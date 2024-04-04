@@ -57,3 +57,21 @@ class BasePage:
             "arguments[0].scrollIntoView({ block: 'center' });", element
         )
         time.sleep(1)  # дождемся анимации скролла
+        return element
+
+    def should_be_in_title(self, text: str):
+        assert text in self.get_title()
+
+    def should_be_in_url(self, text: str):
+        assert text in self.get_url()
+
+    def should_be_displayed(self, element: WebElement):
+        assert element.is_displayed()
+
+    def should_be_same_width_and_height(self, elements: list[WebElement]):
+        widths = [int(elem.get_attribute("width")) for elem in elements]
+        heights = [int(elem.get_attribute("height")) for elem in elements]
+
+        assert sum(widths) == widths[0] * len(elements) and sum(heights) == heights[
+            0
+        ] * len(elements)
