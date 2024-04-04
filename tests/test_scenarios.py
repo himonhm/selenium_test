@@ -1,11 +1,5 @@
-import re
-import time
-from selenium.webdriver.common.by import By
-
 from pages import pages
-from pages.locators import SbisPageLocators, TensorPageLocators
-from misc import file_tools
-from .conftest import DOWNLOAD_FOLDER, NEW_REGION_NAME, NEW_REGION_PARTIAL_URL
+from .conftest import NEW_REGION_NAME, NEW_REGION_PARTIAL_URL
 
 
 def test_scenario_1(driver):
@@ -64,34 +58,12 @@ def test_scenario_2(driver):
 
 
 def test_scenario_3(driver):
-    # переходим на https://sbis.ru/
     sbis_page = pages.SbisPage(driver=driver, timeout=10)
     sbis_page.open()
-    assert "СБИС" in sbis_page.get_title()
+    sbis_page.should_be_in_title("СБИС")
 
-    # находим footer
-    footer = sbis_page.find_element(
-        (By.XPATH, "//div[@class='sbisru-Footer__container']")
-    )
-    sbis_page.scroll_to_element(footer)
-    footer.find_element(*SbisPageLocators.BLOCK_FOOTER_DOWNLOAD_LINK).click()
+    sbis_page.find_download_local_versions_link().click()
 
-    download_sbis_plugin_link = sbis_page.find_element(
-        SbisPageLocators.DOWNLOAD_SBIS_PLUGIN_LINK
-    )
-
-    # для того, чтобы клик прошел через робота, нажимаем два раза
-    download_sbis_plugin_link.click()
-    time.sleep(2)
-    download_sbis_plugin_link.click()
-    time.sleep(1)  # подождать загрузки js
-
-    download_file_link = sbis_page.find_element(SbisPageLocators.DOWNLOAD_FILE_LINK)
-    download_file_link.click()
-
-    file_size_from_page = float(re.findall(r"\d*\.\d+|\d+", download_file_link.text)[0])
-    file_size_from_file = file_tools.get_file_size(
-        file_tools.get_latest_file_path(DOWNLOAD_FOLDER)
-    )
-
-    assert file_size_from_page == round(file_size_from_file, 1)
+    sbis_download_page = pages.SbisDownloadPage(driver=driver, timeout=10)
+    latest_downloaded_file_path = sbis_download_page.should_download_sbis_plugin()
+    sbis_download_page.should_same_file_size(latest_downloaded_file_path)
